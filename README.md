@@ -6,6 +6,8 @@ Summary
 
 This program is written in Java and is a stand-alone executable file. The user selects a country and a date range to pull the COVID deaths and cases. That data will be displayed on a line graph for the user to view. The user can select an additional country to compare as well as select the daily change instead of the total count of cases/deaths. 
 
+Data is retrieved from CSSEGISandData's GitHub (JHU CSSE COVID-19 Data, and the url: https://github.com/CSSEGISandData/COVID-19)
+
 
 Usage
 -------
