@@ -30,7 +30,7 @@ If the user selects two countries to compare, and additional dialog box will app
 
 ![image](https://user-images.githubusercontent.com/96243400/159922122-3d3a4121-ea66-4570-9d5b-2a362ff4fb99.png)
 
-Once all of the data is submitted, a progress bar will display and alert the user on the progress. Upon completion of data retrieval, two graphs will display. One will contain the deaths (left graph) and one will display the cases (right graph). If two countries were selected, there will be a legend to denote with country is represented by which line. The user can clear data from the main screen or update the data (country, second country, dates, view menu). Once the get data button is submitted subsequently, all previous data is removed.  
+Once all of the data is submitted, a progress bar will display and alert the user on the progress. Upon completion of data retrieval, two graphs will display. One will contain the deaths (left graph) and one will display the cases (right graph). If two countries were selected, there will be a legend to denote with country is represented by which line. The user can clear data from the main screen or update the data (country, second country, dates, view menu). Once the get data button is submitted, all previous data is removed.  
 
 
 
