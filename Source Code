@@ -1,1 +1,803 @@
+package covid_data;
+
+public class COVID_Data {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		
+		GUI mainMenu = new GUI();
+	}
+}
+
+-----------------------------------------------------------------------------------------------
+
+package covid_data;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
+
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
+
+public class GUI implements ActionListener {
+
+	//declare variables
+	private String countrySelected;
+	private DatePicker dpStart;
+	private DatePicker dpEnd;
+	private static JTextArea information;
+	private JComboBox countryCB;
+	private String fileMenu;
+	private String viewMenu;
+	private String additionalCountry;
+	private JComboBox CB;
+	private COVIDInfo info;
+	
+	public GUI() {
+		
+		//Initialize variables
+		fileMenu = "One Country";
+		viewMenu = "Total Count";
+		countrySelected = "";
+		additionalCountry = "";
+		
+		//Creating the Frame
+        JFrame frame = new JFrame("COVID Data");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 400);
+		
+        //Creating the MenuBar and adding components
+        JMenuBar mb = new JMenuBar();
+        JMenu m1 = new JMenu("Compare");
+        JMenu m2 = new JMenu("View");
+        mb.add(m1);
+        mb.add(m2);
+        JMenuItem m11 = new JMenuItem("One Country");
+        JMenuItem m12 = new JMenuItem("Two Countries");
+        JMenuItem m21 = new JMenuItem("Total Count");
+        JMenuItem m22 = new JMenuItem("Daily Change");
+        m1.add(m11);
+        m1.add(m12);
+        m2.add(m21);
+        m2.add(m22);
+        
+        //set listeners for the MenuBar
+        m11.addActionListener(this);
+        m12.addActionListener(this);
+        m21.addActionListener(this);
+        m22.addActionListener(this);
+        
+        //Creating the panel at bottom and adding components
+        JPanel panel = new JPanel(); // the panel is not visible in output
+        JLabel countryLabel = new JLabel("Enter Country:");
+        JLabel dateLabel = new JLabel("Enter Dates:");
+
+        //adds the country combobox and allows autofilling
+        countryCB = new JComboBox(new Object[] {"", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burma", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Brazzaville)", "Congo (Kinssa)", "Costa Rica", "Cote d\'Ivoire", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark", "Diamond Princess", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, South", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "MS Zaandam", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Namibia", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Mano", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "US", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "West Bank and Gaza", "Yemen"});
+        countryCB.setEditable(true);
+        JTextComponent editor = (JTextComponent)countryCB.getEditor().getEditorComponent();
+        editor.setDocument (new CountryList(countryCB));
+        
+        //creates the buttons
+        JButton getDataButton = new JButton("Get Data");
+        JButton clearDataButton = new JButton("Clear Data");
+        
+        //sets listeners
+        countryCB.addActionListener(this);
+        getDataButton.addActionListener(this);
+        clearDataButton.addActionListener(this);
+        
+        //configures the date picker
+        DatePickerSettings dsStart = new DatePickerSettings();
+        DatePickerSettings dsEnd = new DatePickerSettings();
+        dpStart = new DatePicker(dsStart);
+        dpEnd = new DatePicker(dsEnd);
+        
+        //sets the first day in the calendar to 22JAN2020 and last day to select to yesterday
+        dsStart.setDateRangeLimits(LocalDate.now().minusDays(getDaysBetween()), LocalDate.now().minusDays(1));
+        dsEnd.setDateRangeLimits(LocalDate.now().minusDays(getDaysBetween()), LocalDate.now().minusDays(1));
+        dsStart.setFormatForDatesCommonEra("MM-dd-yyyy");
+        dsEnd.setFormatForDatesCommonEra("MM-dd-yyyy");
+        
+        //adds components to the panel
+        panel.add(clearDataButton);
+        panel.add(countryLabel); 
+        panel.add(countryCB);
+        panel.add(dateLabel);
+        panel.add(dpStart);
+        panel.add(dpEnd);
+        panel.add(getDataButton);
+        
+        // Information menu at the center
+        information = new JTextArea();
+        JScrollPane scrollInformation = new JScrollPane(information);
+        information.insert("starting\n", 0);
+        
+        //Adding Components to the frame.
+        frame.getContentPane().add(BorderLayout.SOUTH, panel);
+        frame.getContentPane().add(BorderLayout.NORTH, mb);
+        frame.getContentPane().add(BorderLayout.CENTER, scrollInformation);
+        frame.setVisible(true);
+	}
+	
+	//event listeners for the actions. The Get Data button submits the information to the 
+	//COVIDInfo class
+	public void actionPerformed(ActionEvent e) {
+		if(e.getActionCommand() == "Get Data"){
+			if (countrySelected != null && countrySelected != "") {
+				if (dpStart.getDate() != null && dpEnd.getDate() != null) {
+					if (dpEnd.getDate().isAfter(dpStart.getDate())) {
+						if (viewMenu.equals("Total Count")) {	
+							if(fileMenu.equals("One Country")) {
+								information.insert("\nData submitted:\n\n", 0);
+								resetData();
+								info = new COVIDInfo(countrySelected, dpStart.getDate(), dpEnd.getDate(), false);
+							} else if (fileMenu.equals("Two Countries")) {
+								if (additionalCountry != "") {
+									information.insert("\nData submitted:\n", 0);
+									resetData();
+									info = new COVIDInfo(countrySelected, dpStart.getDate(), dpEnd.getDate(),
+											additionalCountry, false);
+								} else {
+									JOptionPane.showMessageDialog(null, "Select an additional country to compare " +
+											"from the Compare Menu, or select one country from the Compare Menu.");
+									information.insert("Select an additional country to compare " +
+											"from the Compare Menu, or select one country from the Compare Menu.\n", 0);
+								}
+							}
+						} else if (viewMenu.equals("Daily Change")) {
+							if(fileMenu.equals("One Country")) {
+								information.insert("\nData submitted:\n", 0);
+								resetData();
+								info = new COVIDInfo(countrySelected, dpStart.getDate(), dpEnd.getDate(), true);
+							} else if (fileMenu.equals("Two Countries")) {
+								if (additionalCountry != "") {
+									information.insert("\nData submitted:\n", 0);
+									resetData();
+									info = new COVIDInfo(countrySelected, dpStart.getDate(), dpEnd.getDate(),
+											additionalCountry, true);
+								} else {
+									JOptionPane.showMessageDialog(null, "Select an additional country to compare " +
+											"from the Compare Menu, or select one country from the Compare Menu.");
+									information.insert("Select an additional country to compare " +
+											"from the Compare Menu, or select one country from the Compare Menu.\n", 0);
+								}
+							}
+						}
+						
+					} else {
+						information.insert("End date should be after the start date.\n", 0);
+						JOptionPane.showMessageDialog(null, "End date should be after the start date");
+					}
+				} else {
+					information.insert("Select the start and end dates.\n", 0);
+					JOptionPane.showMessageDialog(null, "Select start and end dates");
+				}
+			} else {
+				information.insert("Select a country.\n", 0);
+				JOptionPane.showMessageDialog(null, "Select a country");
+			}
+		} else if (e.getActionCommand() == "Clear Data"){
+			//clears the data from the GUI
+			dpStart.setDate(null);
+			dpEnd.setDate(null);
+			countrySelected = null;
+			fileMenu = "One Country";
+			viewMenu = "Total Count";
+			if (countryCB != null) {
+				countryCB.setSelectedIndex(0);
+			}
+			if (info != null) {
+				info.closeCharts();
+			}
+			information.insert("Data cleared.\n", 0);
+		} else if(e.getActionCommand() == "One Country"){
+			fileMenu = "One Country";
+			additionalCountry = null;
+			information.insert("Observing one country.\n", 0);
+		} else if(e.getActionCommand() == "Two Countries"){
+			fileMenu = "Two Countries";
+			information.insert("Comparing two countries.\n", 0);
+			if (countrySelected != "") {
+				addAdditionalCountry();
+			} else {
+				JOptionPane.showMessageDialog(null, "Select a country first.");
+				information.insert("Select a country first before selecting an additional country.\n", 0);
+			}
+		} else if(e.getActionCommand() == "Total Count") {
+			viewMenu = "Total Count";
+			information.insert("Displaying total count.\n", 0);
+		} else if(e.getActionCommand() == "Daily Change") {
+			viewMenu = "Daily Change";
+			information.insert("Displaying daily change.\n", 0);
+		} else {
+			//combo box is changed to select the country
+			countryCB = (JComboBox)e.getSource();
+			countrySelected = (String)countryCB.getSelectedItem();
+			if (countrySelected != "") {
+				information.insert(countrySelected + " is the country selected.\n", 0);
+			}
+		}
+	}
+	
+	//resets the data for a new search
+	private void resetData() {
+		if (info != null) {
+			info.clearData();
+		}
+	}
+
+	//lets the user select another country to compare
+	private void addAdditionalCountry() {
+		//creates an additional combobox for the user to select another country
+		JComboBox CB = new JComboBox(new Object[] {"", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burma", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Brazzaville)", "Congo (Kinssa)", "Costa Rica", "Cote d\'Ivoire", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark", "Diamond Princess", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, South", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "MS Zaandam", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Namibia", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Mano", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "US", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "West Bank and Gaza", "Yemen"});
+        CB.removeItem(countrySelected);
+		CB.setEditable(true);
+		JTextComponent editor = (JTextComponent)CB.getEditor().getEditorComponent();
+        editor.setDocument (new CountryList(CB));
+		
+		JDialog dialog = new JDialog();
+		dialog.setLayout(new FlowLayout());
+		JButton button = new JButton("Ok");
+		dialog.add(new JLabel("Select an additional country to compare and close this dialog box."));
+		dialog.getContentPane().add(CB);
+		dialog.setSize(600,400);
+		dialog.setVisible(true);
+		
+		//adds action listener to the second country combo box
+		CB.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JComboBox CBD = CB;
+				CBD = (JComboBox) e.getSource();
+				additionalCountry = (String)CB.getSelectedItem();
+				if (additionalCountry != "") {
+					information.insert(additionalCountry + " is the additional country selected.\n", 0);
+				}				
+			}
+			
+		});
+		return;
+	}
+
+	//updates the information panel from another class
+	public static void updateInformation(String info) {
+		information.insert(info, 0);
+	}
+
+	//gets the days between the selected dates
+	private static long getDaysBetween() {
+		long daysBetween = 0;
+		String pattern = "dd MM yyyy";
+		
+		//starting date for COVID Data is 22JAN2020
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MM yyyy");
+		DateFormat df = new SimpleDateFormat(pattern);
+		String inputString1 = "22 01 2020";
+		//current date in the same format as string1
+		String inputString2 = df.format(Calendar.getInstance().getTime());
+
+		LocalDate date1 = LocalDate.parse(inputString1, dtf);
+		LocalDate date2 = LocalDate.parse(inputString2, dtf);
+		daysBetween = ChronoUnit.DAYS.between(date1, date2);
+		
+		return daysBetween;
+	}
+}
+
+-------------------------------------------------------------------------------------------------------------------
+
+package covid_data;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.swing.SwingWorker;
+
+public class COVIDInfo {
+
+	private static String country;
+	private LocalDate startDate;
+	private LocalDate endDate;
+	private List<LocalDate> datesBetween;
+	private String[] datesBetweenStr;
+	private static double[] numberOfDeaths;
+	private static double[] numberOfCases;
+	private static double[] numberOfDeathsCountry2;
+	private static double[] numberOfCasesCountry2;
+	private static int index;
+	private static int indexCountry2;
+	private boolean dailyChange;
+	private static String additionalCountry;
+	
+	
+	private JFrameChart deathChart;
+	private JFrameChart casesChart;
+	
+	//first constructor is for single country selection.
+	public COVIDInfo(String countrySelected, LocalDate start, LocalDate end, boolean dailyChange) {
+		//assign variables
+		country = countrySelected;
+		this.startDate = start;
+		this.endDate = end;
+		index = 0;
+		this.dailyChange = dailyChange;
+		datesBetween = startDate.datesUntil(endDate).collect(Collectors.toList());
+		datesBetween.add(datesBetween.size(), endDate);		//adds the final date to the list
+		datesBetweenStr = new String[datesBetween.size()];
+		numberOfDeaths = new double[datesBetween.size()];
+		numberOfCases = new double[datesBetween.size()];
+		
+		//formats the date, gets the data, and displays
+		formatDates();
+		getData();
+	}
+	
+	//second constructor is if two countries are being compared.
+	public COVIDInfo(String countrySelected, LocalDate start, LocalDate end, String country2, boolean dailyChange) {
+		//assigns variables
+		country = countrySelected;
+		additionalCountry = country2;
+		this.startDate = start;
+		this.endDate = end;
+		index = 0;
+		indexCountry2 = 0;
+		this.dailyChange = dailyChange;
+		datesBetween = startDate.datesUntil(endDate).collect(Collectors.toList());
+		//adds the final date to the list
+		datesBetween.add(datesBetween.size(), endDate);
+		datesBetweenStr = new String[datesBetween.size()];
+		numberOfDeaths = new double[datesBetween.size()];
+		numberOfCases = new double[datesBetween.size()];
+		numberOfDeathsCountry2 = new double[datesBetween.size()];
+		numberOfCasesCountry2 = new double[datesBetween.size()];
+		
+		//formats the date, gets the data for both countries, and displays
+		formatDates();
+		getData();
+	}
+	
+	//gets the data from the online source
+	private void getData() {
+		//creates the GUI to display the progress
+		ProgressGUI progress = new ProgressGUI(datesBetween.size());
+		
+		//uses swingworker to run the data pull in the background and update the status bar GUI
+		SwingWorker<Object, Integer> worker = new SwingWorker<Object, Integer>() {
+
+			@Override
+			protected Object doInBackground() throws Exception {
+				//gets the data in the background and updates the count with publish
+				for (int i = 0; i < datesBetween.size(); i++) {
+					getUrlContents("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/" + datesBetweenStr[i] + ".csv");
+					publish(i);
+				}
+				return null;
+			}
+			
+			//updates the GUI progress bar
+			protected void process(List<Integer> chunks) {
+				for (int i : chunks) {
+					progress.updateValue(i);
+				}
+			}
+			
+			//once done, it closes the status bar GUI and displays the graphs
+			protected void done() {
+				progress.close();
+				//if the daily change submenu is selected, it will display daily change vice total count
+				if(additionalCountry != null) {					//two countries selected
+					if (dailyChange) {							//daily change is selected
+						getDailyChangeData(false);  			//parameter: oneCountry
+						displayChartBothCountries("Daily Change");
+					} else {									//total count is selected
+						displayChartBothCountries("Total Count");
+					}
+				} else {										//one country selected
+					if (dailyChange) {							//daily change is selected
+						getDailyChangeData(true);				//parameter: oneCountry
+						displayChart("Daily Change");
+					} else {									//total count is selected
+						displayChart("Total Count");
+					}
+				}
+			}
+			
+		};
+		worker.execute();
+	}
+	
+	//reads the data line-by-line and saves only the information related to the country selected
+	private static void getUrlContents(String theUrl){  
+		String[] arrOfStr;
+		
+		try{  
+			URL url = new URL(theUrl); // creating a url object  
+			URLConnection urlConnection = url.openConnection(); // creating a urlconnection object  
+	  
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));  
+			String line;  
+			
+			//goes through the entire page and saves the deaths and cases (data in csv format)
+			while ((line = bufferedReader.readLine()) != null){  
+				arrOfStr = line.split(",");
+				if(arrOfStr[3].equals(country)) {
+					numberOfDeaths[index] = numberOfDeaths[index] + Integer.parseInt(arrOfStr[8]);
+					numberOfCases[index] = numberOfCases[index] + Integer.parseInt(arrOfStr[7]);
+				}
+				if (additionalCountry != null) {
+					if(arrOfStr[3].equals(additionalCountry)) {
+						numberOfDeathsCountry2[indexCountry2] = numberOfDeathsCountry2[indexCountry2] + 
+								Integer.parseInt(arrOfStr[8]);
+						numberOfCasesCountry2[indexCountry2] = numberOfCasesCountry2[indexCountry2] + 
+								Integer.parseInt(arrOfStr[8]);
+					}
+				}
+			}  
+			
+			bufferedReader.close();  
+		} catch(Exception e) {  
+			e.printStackTrace();  
+		}  
+		
+		index++;
+		if(additionalCountry != null) {
+			indexCountry2++;
+		}
+	}
+	
+	//displays the chart for a single country
+	private void displayChart(String title) {
+		deathChart = new JFrameChart("Number of Deaths " + country, title, 
+				numberOfDeaths, datesBetweenStr, country);
+		
+		casesChart = new JFrameChart("Number of Cases " + country, title, 
+				numberOfCases, datesBetweenStr, country);
+	}
+	
+	//displays the chart for both countries
+	private void displayChartBothCountries(String title) {
+		deathChart = new JFrameChart("Number of Deaths " + country + " vs " + additionalCountry, 
+				title, numberOfDeaths, datesBetweenStr, country, additionalCountry,
+				numberOfDeathsCountry2);
+		
+		casesChart = new JFrameChart("Number of Cases " + country + " vs " + additionalCountry, 
+				title, numberOfCases, datesBetweenStr, country, additionalCountry,
+				numberOfCasesCountry2);
+	}
+	
+	//if the daily change menu button is clicked, this gets the daily change between
+	//the days and sets them to the deathchart and caseschart to be displayed.
+	private void getDailyChangeData(boolean oneCountry) {
+		double tempArrDeaths[] = new double[datesBetween.size()-1];
+		double tempArrCases[] = new double[datesBetween.size()-1];
+		String tempDatesBetweenStr[] = new String[datesBetween.size()-1];
+		
+		//finds the daily change for the first country selected
+		for (int i = 0; i < datesBetween.size()-1; i++) {
+			tempArrDeaths[i] = (numberOfDeaths[i+1] - numberOfDeaths[i]);
+			tempArrCases[i] = (numberOfCases[i+1] - numberOfCases[i]);
+		}
+		numberOfDeaths = new double[datesBetween.size()-1];
+		numberOfCases = new double[datesBetween.size()-1];
+		numberOfDeaths = tempArrDeaths;
+		numberOfCases = tempArrCases;
+		tempArrDeaths = new double[datesBetween.size()-1];
+		tempArrCases = new double[datesBetween.size()-1];
+		
+		//finds the daily change for the second country
+		if (!oneCountry) {
+			for (int i = 0; i < datesBetween.size()-1; i++) {
+				tempArrDeaths[i] = (numberOfDeathsCountry2[i+1] - numberOfDeathsCountry2[i]);
+				tempArrCases[i] = (numberOfCasesCountry2[i+1] - numberOfCasesCountry2[i]);
+			}
+			numberOfDeathsCountry2 = new double[datesBetween.size()-1];
+			numberOfCasesCountry2 = new double[datesBetween.size()-1];
+			numberOfDeathsCountry2 = tempArrDeaths;
+			numberOfCasesCountry2 = tempArrCases;
+		}
+		
+		//resizes the array for the new number of dates
+		for (int i = 0; i < datesBetweenStr.length-1; i++) {
+			tempDatesBetweenStr[i] = datesBetweenStr[i];
+		}
+		datesBetweenStr = new String [tempDatesBetweenStr.length];
+		datesBetweenStr = tempDatesBetweenStr;
+	}
+
+	//closes the charts
+	public void closeCharts() {
+		deathChart.close();
+		casesChart.close();
+	}
+	
+	//formats the date to retrieve from the online source
+	private void formatDates() {
+		for (int i = 0; i < datesBetween.size(); i++) {
+			datesBetweenStr[i] = datesBetween.get(i).format(DateTimeFormatter.ofPattern("MM-dd-YYYY"));
+		}
+	}
+	
+	//clears the variables and closes the graphs for a new search
+	public void clearData() {
+		index = 0;
+		indexCountry2 = 0;
+		additionalCountry = null;
+		country = null;
+		startDate = null;
+		endDate = null;
+		datesBetween = null;
+		datesBetweenStr = null;
+		numberOfDeaths = null;
+		numberOfCases = null;
+		numberOfDeathsCountry2 = null;
+		numberOfCasesCountry2 = null;
+		if(deathChart != null) {
+			closeCharts();
+		}
+		
+	}  
+}
+
+-------------------------------------------------------------------------------------------------------------------
+
+package covid_data;
+
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.UIManager;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainDocument;
+
+//Allows the country dropdown combo box to be auto-fillable.
+public class CountryList extends PlainDocument {
+
+	JComboBox comboBox;
+	ComboBoxModel model;
+	boolean selecting = false;
+
+	public CountryList (final JComboBox comboBox) {
+		this.comboBox = comboBox;
+		model = comboBox.getModel();
+	}
+	
+    public void remove(int offs, int len) throws BadLocationException {
+        if (selecting) return;
+        super.remove(offs, len);
+    }
+	
+	@Override
+	public void insertString(int offset, String str, AttributeSet a) throws BadLocationException{
+		if (selecting) {
+			return;
+		}
+		super.insertString(offset, str, a);
+		Object item = lookupItem(getText(0, getLength()));
+		if (item != null) {
+			setSelectedItem(item);
+			super.remove(0, getLength());
+	        super.insertString(0, item.toString(), a);
+	        JTextComponent editor = (JTextComponent) comboBox.getEditor().getEditorComponent();
+	        editor.setSelectionStart(offset + str.length());
+	        editor.setSelectionEnd(getLength());
+			model.setSelectedItem(item);
+		} else {
+			GUI.updateInformation("Please select a country from the list.\n");
+			item = comboBox.getSelectedItem();
+			offset = offset - str.length();
+			UIManager.getLookAndFeel().provideErrorFeedback(comboBox);
+		}
+	}
+
+	private void setSelectedItem(Object item) {
+        selecting = true;
+        model.setSelectedItem(item);
+        selecting = false;
+    }
+	
+	private Object lookupItem(String pattern) {
+        for (int i=0, n=model.getSize(); i < n; i++) {
+            Object currentItem = model.getElementAt(i);
+            if (currentItem.toString().startsWith(pattern)) {
+                return currentItem;
+            }
+        }
+        return null;
+    }
+	
+	
+}
+
+---------------------------------------------------------------------------------------------------------------------
+
+package covid_data;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.SymbolAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+public class JFrameChart extends JFrame{
+
+	private JFrame chartFrame;
+	private JPanel chartPanel;
+	private XYDataset dataset; 
+	
+	//constructor for a single country
+	public JFrameChart(String applicationTitle , String chartTitle, double[] num, String[] dates, String country) {
+		
+		//creates the chart panel and frame
+		chartPanel = createChartPanel(chartTitle, country, num, dates, false, null, null);
+		chartFrame = new JFrame(applicationTitle);
+		
+		//sets the location for the chart based on if it is the death chart or cases chart
+		if(applicationTitle.contains("Deaths")) {
+			chartFrame.setLocation(100, 100);
+		} else {
+			chartFrame.setLocation(700, 100);
+		}
+		
+		chartFrame.setSize(600, 600);
+		chartFrame.add(chartPanel);
+		chartFrame.setVisible(true);
+	}
+
+	//constructor for two countries
+	public JFrameChart(String applicationTitle , String chartTitle, double[] num, String[] dates, String country,
+			String additionalCountry, double[] numOfCountry2) {
+		
+		//creates the chart panel and frame
+		chartPanel = createChartPanel(chartTitle, country, num, dates, true, additionalCountry, numOfCountry2);
+		chartFrame = new JFrame(applicationTitle);
+		
+		//sets the location for the chart based on if it is the death chart or cases chart
+		if(applicationTitle.contains("Deaths")) {
+			chartFrame.setLocation(100, 100);
+		} else {
+			chartFrame.setLocation(700, 100);
+		}
+		
+		chartFrame.setSize(600, 600);
+		chartFrame.add(chartPanel);
+		chartFrame.setVisible(true);
+		
+	}
+
+	//creates the chart and sets the data
+	private JPanel createChartPanel(String chartTitle, String country, double[] num, String[] dates, boolean twoCountries,
+			String additionalCountry, double[] numOfCountry2) {
+
+		JFreeChart chart;
+		
+		//determines if two countries are selected
+		if (twoCountries) {
+			XYDataset dataset = createDataset(num, dates, country, twoCountries, additionalCountry, numOfCountry2);
+			chart = ChartFactory.createXYLineChart(chartTitle + " " + country + " vs " + additionalCountry, 
+					"Date", "Count", dataset, PlotOrientation.VERTICAL, true, false, false);
+		} else {
+			XYDataset dataset = createDataset(num, dates, country, twoCountries, null, null);
+			chart = ChartFactory.createXYLineChart(chartTitle + " " + country, "Date", "Count", 
+					dataset, PlotOrientation.VERTICAL, true, false, false);
+		}
+		
+		XYPlot xyPlot = (XYPlot) chart.getPlot();
+		SymbolAxis rangeAxis = new SymbolAxis("Date", dates);
+		xyPlot.setDomainAxis(rangeAxis);
+		
+		return new ChartPanel(chart);
+	}
+
+	//creates the dataset for the country(s) selected
+	private XYDataset createDataset(double[] num, String[] dates, String country, boolean twoCountries, 
+			String additionalCountry, double[] numOfCountry2) {
+		
+		//initalize dataset and series to add data
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series = new XYSeries(country);
+		
+		//adds the data to the series
+		for (int i = 0; i < num.length; i++) {
+			series.add(i, num[i]);
+		}
+		dataset.addSeries(series);
+		
+		//if two countries are selected, adds the second set of data to the series
+		if (twoCountries) {
+			XYSeries series2 = new XYSeries(additionalCountry);
+			for (int j = 0; j < numOfCountry2.length; j++) {
+				series2.add(j, numOfCountry2[j]);
+			}
+			dataset.addSeries(series2);
+		}
+		
+		return dataset;
+	}
+	
+	//closes the charts
+	public void close() {
+		chartFrame.dispose();
+	}
+	
+}
+
+--------------------------------------------------------------------------------------------------------------------
+
+package covid_data;
+
+import java.awt.event.WindowEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+
+public class ProgressGUI extends JPanel{
+
+	JPanel progressPanel;
+	JProgressBar progressBar;
+	JFrame progressFrame;
+	
+	public ProgressGUI(int max) {
+		
+		progressPanel = new JPanel();
+		progressBar = new JProgressBar();
+		progressFrame = new JFrame();
+		
+		progressBar.setMinimum(0);
+		progressBar.setMaximum(max);
+		progressBar.setStringPainted(true);
+		progressPanel.add(progressBar);
+		progressFrame.setContentPane(progressBar);
+		progressFrame.pack();
+		progressFrame.setLocationRelativeTo(null);
+		progressFrame.setVisible(true);
+	}
+	
+	//updates the progress bar
+	public void updateValue(int value) {
+		progressBar.setValue(value);
+	}
+	
+	//closes the progress bar GUI
+	public void close() {
+		progressFrame.dispatchEvent(new WindowEvent(progressFrame, WindowEvent.WINDOW_CLOSING));
+	}
+	
+}
 
